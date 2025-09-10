@@ -1,0 +1,64 @@
+local Players = game:GetService("Players")
+local spawnPart = workspace:WaitForChild("SpawnLocation")
+
+-- Function untuk teleport player
+local function teleportTo(part, character)
+	local hrp = character:WaitForChild("HumanoidRootPart")
+	hrp.CFrame = part.CFrame + Vector3.new(0, 5, 0)
+end
+
+-- Saat player masuk game
+Players.PlayerAdded:Connect(function(player)
+	player:SetAttribute("Checkpoint", nil) -- default checkpoint
+
+	player.CharacterAdded:Connect(function(character)
+		local checkpointName = player:GetAttribute("Checkpoint")
+		if checkpointName and workspace:FindFirstChild(checkpointName) then
+			teleportTo(workspace[checkpointName], character)
+		else
+			teleportTo(spawnPart, character)
+		end
+	end)
+end)
+
+-- Setup untuk setiap checkpoint
+for _, checkpoint in pairs(workspace:GetChildren()) do
+	if checkpoint:IsA("Part") and checkpoint.Name:match("Checkpoint") then
+		-- Tambahkan cahaya (biar menyala)
+		if not checkpoint:FindFirstChild("PointLight") then
+			local light = Instance.new("PointLight")
+			light.Brightness = 2
+			light.Range = 15
+			light.Color = Color3.fromRGB(0, 255, 0) -- hijau
+			light.Parent = checkpoint
+		end
+
+		-- Tambahkan suara bell
+		if not checkpoint:FindFirstChild("Bell") then
+			local sound = Instance.new("Sound")
+			sound.SoundId = "rbxassetid://93429802364364" -- contoh ID bell
+			sound.Volume = 2
+			sound.Looped = false
+			sound.Parent = checkpoint
+		end
+
+		-- Event sentuh checkpoint
+		checkpoint.Touched:Connect(function(hit)
+			local character = hit.Parent
+			local player = Players:GetPlayerFromCharacter(character)
+			if player then
+				if player:GetAttribute("Checkpoint") ~= checkpoint.Name then
+					player:SetAttribute("Checkpoint", checkpoint.Name)
+
+					local bell = checkpoint:FindFirstChild("Bell")
+					if bell then
+						bell:Play() -- mainkan audio
+					end
+
+					print(player.Name .. " mengambil checkpoint: " .. checkpoint.Name)
+				end
+			end
+		end)
+	end
+end
+
