@@ -1,0 +1,32 @@
+local checkpoint = script.Parent
+local Players = game:GetService("Players")
+
+-- Tambahkan Bell Sound kalau belum ada
+local bell = checkpoint:FindFirstChild("Bell")
+if not bell then
+	local sound = Instance.new("Sound")
+	sound.Name = "Bell"
+	sound.SoundId = "rbxassetid://93429802364364" -- ganti dengan ID bell favorit
+	sound.Volume = 2
+	sound.Looped = false
+	sound.Parent = checkpoint
+	bell = sound
+end
+
+-- Function saat player injak box
+checkpoint.Touched:Connect(function(hit)
+	local character = hit.Parent
+	local player = Players:GetPlayerFromCharacter(character)
+
+	if player and character:FindFirstChild("Humanoid") then
+		-- Cek apakah player sudah pernah bunyiin bell ini
+		if not player:GetAttribute(checkpoint.Name .. "_BellPlayed") then
+			player:SetAttribute(checkpoint.Name .. "_BellPlayed", true)
+
+			if bell then
+				bell:Play()
+			end
+			print(player.Name .. " membunyikan bel di " .. checkpoint.Name)
+		end
+	end
+end)
